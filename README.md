@@ -61,6 +61,18 @@ graph.save('mygraph.gz', err => {
 - Save and load graphs to/from files
 - TypeScript support with full type definitions
 
-## License
+## 📝 License
 
-MIT
+MIT © [Felipe Rohde](mailto:feliperohdee@gmail.com)
+
+## ⭐ Show your support
+
+Give a ⭐️ if this project helped you!
+
+## 👨‍💻 Author
+
+**Felipe Rohde**
+
+- Twitter: [@felipe_rohde](https://twitter.com/felipe_rohde)
+- Github: [@feliperohdee](https://github.com/feliperohdee)
+- Email: feliperohdee@gmail.com
