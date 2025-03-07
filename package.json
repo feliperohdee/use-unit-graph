@@ -1,0 +1,28 @@
+{
+	"author": "Felipe Rohde",
+	"description": "A graph data structure library with TypeScript support",
+	"devDependencies": {
+		"@types/node": "^20.11.5",
+		"@vitest/coverage-v8": "^1.2.1",
+		"prettier": "^3.5.3",
+		"typescript": "^5.3.3",
+		"vitest": "^1.2.1"
+	},
+	"keywords": [
+		"graph",
+		"data-structure",
+		"typescript"
+	],
+	"license": "MIT",
+	"main": "dist/index.js",
+	"name": "use-unit-graph",
+	"scripts": {
+		"build": "tsc",
+		"lint": "prettier --write .",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"test:watch": "vitest"
+	},
+	"types": "dist/index.d.ts",
+	"version": "1.0.0"
+}
