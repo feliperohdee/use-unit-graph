@@ -239,6 +239,29 @@ const graph = new Graph({
 });
 ```
 
+### Visualization with Mermaid
+
+The library includes support for exporting graphs in Mermaid format, making it easy to visualize your graph structures:
+
+```typescript
+// Generate Mermaid diagram code
+const mermaidCode = graph.toMermaid();
+console.log(mermaidCode);
+```
+
+Example output:
+
+```
+graph TD
+    12345["person (name: Alice, age: 30)"]
+    12344["person (name: Bob, age: 25)"]
+    12343["person (name: Charlie, age: 35)"]
+    12345 --> |"knows (1)"| 12344
+    12344 --> |"knows (2)"| 12343
+```
+
+This can be rendered using any Mermaid-compatible tool to create visualizations of your graph structure.
+
 ## License
 
 MIT © [Felipe Rohde](mailto:feliperohdee@gmail.com)
@@ -247,10 +270,14 @@ MIT © [Felipe Rohde](mailto:feliperohdee@gmail.com)
 
 Contributions, issues, and feature requests are welcome!
 
-## 👨‍💻 Author
+## Author
 
 **Felipe Rohde**
 
 - Twitter: [@felipe_rohde](https://twitter.com/felipe_rohde)
 - Github: [@feliperohdee](https://github.com/feliperohdee)
 - Email: feliperohdee@gmail.com
+
+## Show your support
+
+Give a ⭐️ if this project helped you!

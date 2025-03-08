@@ -279,6 +279,73 @@ describe('/graph', () => {
 		});
 	});
 
+	describe('toMermaid', () => {
+		let nodeA: Node;
+		let nodeB: Node;
+		let nodeC: Node;
+		let edgeAB: Edge;
+		let edgeBC: Edge;
+		let edgeDuplex: Edge;
+
+		beforeEach(() => {
+			nodeA = graph.createNode('person', { name: 'Alice', age: 30 });
+			nodeB = graph.createNode('person', { name: 'Bob' });
+			nodeC = graph.createNode('person', { name: 'Charlie' });
+
+			edgeAB = graph.createEdge('knows');
+			edgeAB.link(nodeA, nodeB).setDistance(1);
+
+			edgeBC = graph.createEdge('knows');
+			edgeBC.link(nodeB, nodeC).setDistance(2);
+
+			edgeDuplex = graph.createEdge('friends');
+			edgeDuplex.link(nodeA, nodeC, true).setDistance(3);
+		});
+
+		it('should generate valid Mermaid graph syntax', () => {
+			const mermaidCode = graph.toMermaid();
+
+			// Check that the output starts with the graph definition
+			expect(mermaidCode).toMatch(/^graph TD\n/);
+
+			// Check that all nodes are included
+			expect(mermaidCode).toContain(`${nodeA._uniqid_}["person (name: Alice, age: 30)"]`);
+			expect(mermaidCode).toContain(`${nodeB._uniqid_}["person (name: Bob)"]`);
+			expect(mermaidCode).toContain(`${nodeC._uniqid_}["person (name: Charlie)"]`);
+
+			// Check that all edges are included with correct syntax
+			expect(mermaidCode).toContain(`${nodeA._uniqid_} --> |"knows (1)"|${nodeB._uniqid_}`);
+			expect(mermaidCode).toContain(`${nodeB._uniqid_} --> |"knows (2)"|${nodeC._uniqid_}`);
+			expect(mermaidCode).toContain(`${nodeA._uniqid_} <--> |"friends (3)"|${nodeC._uniqid_}`);
+		});
+
+		it('should handle nodes without properties', () => {
+			const nodeD = graph.createNode('location', {});
+			const mermaidCode = graph.toMermaid();
+
+			expect(mermaidCode).toContain(`${nodeD._uniqid_}["location"]`);
+		});
+
+		it('should handle edges without entity names', () => {
+			const nodeD = graph.createNode('location', { city: 'New York' });
+			const edgeNoEntity = graph.createEdge('');
+			edgeNoEntity.link(nodeA, nodeD).setDistance(5);
+
+			const mermaidCode = graph.toMermaid();
+
+			// Edge without entity name should not have a label
+			expect(mermaidCode).toContain(`${nodeA._uniqid_} --> ${nodeD._uniqid_}`);
+		});
+
+		it('should handle a graph with no nodes or edges', () => {
+			const emptyGraph = new Graph();
+			const mermaidCode = emptyGraph.toMermaid();
+
+			// Should still have the graph definition
+			expect(mermaidCode).toBe('graph TD\n');
+		});
+	});
+
 	describe('trace', () => {
 		let nodeA: Node;
 		let nodeB: Node;
