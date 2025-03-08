@@ -5,10 +5,11 @@ import EdgeCollection from './edge-collection';
 import HybridSearch from './graph-hybrid-search';
 import Node from './node';
 import NodeCollection from './node-collection';
+import PageRank from './pagerank';
 import Path from './path';
 import Unit from './unit';
 
-type Algorithm = 'hybrid' | 'dijkstra';
+type Algorithm = 'hybrid' | 'dijkstra' | 'pagerank';
 type EdgeCollections = { [key: string]: EdgeCollection };
 type NodeCollections = { [key: string]: NodeCollection };
 type Readfile = (filename: string) => Promise<Buffer>;
@@ -76,6 +77,17 @@ class Graph {
 			const hybridSearch = new HybridSearch();
 
 			return hybridSearch.search(node, opts.compare, opts.count, opts.direction, opts.minDepth, opts.maxDepth) as Path[];
+		} else if (opts.algorithm === 'pagerank') {
+			const pagerank = new PageRank(this);
+			
+			return pagerank.getRelevantNodes(node, {
+				limit: opts.count,
+				maxDepth: opts.maxDepth,
+				minDepth: opts.minDepth,
+				minScore: 0
+			}).map(node => {
+				return new Path([node]);
+			});
 		}
 
 		return this.search(node, opts.compare, opts.count, opts.direction, opts.minDepth, opts.maxDepth);
@@ -361,16 +373,10 @@ class Graph {
 		};
 	}
 
-	trace(fromNode: Node, toNode: Node, direction?: number, algorithm?: Algorithm): Path {
+	trace(fromNode: Node, toNode: Node, direction?: number): Path {
 		const passCondition = (node: Node): boolean => {
 			return node === toNode;
 		};
-
-		if (algorithm === 'hybrid') {
-			const hybridSearch = new HybridSearch();
-
-			return hybridSearch.search(fromNode, passCondition, 1, direction)[0] || new Path([]);
-		}
 
 		return this.search(fromNode, passCondition, 1, direction)[0] || new Path([]);
 	}
