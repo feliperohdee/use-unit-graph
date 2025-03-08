@@ -10,6 +10,7 @@ A lightweight, flexible graph data structure library with comprehensive TypeScri
 - **Collection Management**: Group nodes and edges with efficient indexing
 - **Serialization**: Save and load graphs in compressed format
 - **TypeScript Support**: Fully typed API for better development experience
+- **PageRank Algorithm**: Find most influential nodes in your graph using the PageRank algorithm
 
 ## Installation
 
@@ -94,6 +95,15 @@ const paths = graph.closest(nodeA, {
 	minDepth: 1, // Minimum distance
 	maxDepth: 3, // Maximum distance
 	compare: node => node.get('age') > 25 // Filter nodes
+});
+
+// Find nodes using PageRank algorithm
+const paths = graph.closest(nodeA, {
+	algorithm: 'pagerank', // Use PageRank for node ranking
+	count: 5, // Limit number of results
+	direction: 0, // Direction constraint (0 for both directions)
+	minDepth: 1, // Minimum distance
+	maxDepth: 3 // Maximum distance
 });
 ```
 
@@ -214,14 +224,120 @@ const prerequisites = calculus.inputEdges.filter(e => e.entity === 'prerequisite
 
 ## Advanced Usage
 
-### Hybrid Search Algorithm
+### Path Finding Algorithms
 
 ```typescript
 // Use the hybrid search algorithm for complex path finding
 const paths = graph.closest(startNode, {
-	algorithm: 'hybrid'
+	algorithm: 'hybrid' // Default algorithm
 	// other options...
 });
+
+// Use PageRank algorithm to find most influential nodes
+const paths = graph.closest(startNode, {
+	algorithm: 'pagerank'
+	// other options...
+});
+```
+
+### Hybrid Search Algorithm
+
+The hybrid search algorithm combines aspects of both breadth-first and priority-based searching to efficiently find paths in complex graphs. It's particularly useful for graphs with:
+
+- Varying edge distances
+- Highly connected nodes
+- Complex path requirements
+
+```typescript
+// Create a complex network
+const graph = new Graph();
+
+// Create nodes
+const nodeA = graph.createNode('location', { name: 'A' });
+const nodeB = graph.createNode('location', { name: 'B' });
+const nodeC = graph.createNode('location', { name: 'C' });
+const nodeD = graph.createNode('location', { name: 'D' });
+const nodeE = graph.createNode('location', { name: 'E' });
+
+// Create edges with different distances
+graph.createEdge('path').link(nodeA, nodeB).setDistance(1);
+graph.createEdge('path').link(nodeB, nodeC).setDistance(2);
+graph.createEdge('path').link(nodeC, nodeD).setDistance(1);
+graph.createEdge('path').link(nodeA, nodeE).setDistance(1);
+graph.createEdge('path').link(nodeE, nodeD).setDistance(3);
+
+// Use hybrid search to find paths weighted by both distance and connection count
+const paths = graph.closest(nodeA, {
+	algorithm: 'hybrid',
+	direction: 0,
+	count: 10,
+	minDepth: 0,
+	maxDepth: 5
+});
+
+// The hybrid algorithm gives priority to:
+// 1. Nodes with shorter distances from the source
+// 2. Nodes with more connections (higher degree)
+// This balances finding short paths with finding important/hub nodes
+```
+
+The hybrid algorithm considers both the distance from the starting node and the number of connections a node has when prioritizing the search. This makes it effective for:
+
+- Finding shortest paths in most cases
+- Discovering well-connected nodes that might be important junctions
+- Handling graphs with varying density and structure
+
+The priority calculation uses a weighted formula that considers:
+
+- `distance` - How far the node is from the starting point
+- `connectionCount` - How many edges the node has (adjustable by direction)
+
+This makes the hybrid algorithm more sophisticated than a simple breadth-first or Dijkstra's algorithm, especially in complex real-world networks.
+
+### PageRank Algorithm
+
+The PageRank algorithm can identify the most important or influential nodes in your graph. This is particularly useful for:
+
+```typescript
+// Create a citation network
+const graph = new Graph();
+
+// Create papers
+const papers = [
+	graph.createNode('paper', { title: 'Graph Theory Fundamentals' }),
+	graph.createNode('paper', { title: 'Advanced Network Analysis' }),
+	graph.createNode('paper', { title: 'PageRank Applications' }),
+	graph.createNode('paper', { title: 'Social Network Dynamics' }),
+	graph.createNode('paper', { title: 'Recommendation Systems' })
+];
+
+// Create citation links (directed edges)
+// Paper 0 is cited by papers 1, 2, and 3
+graph.createEdge('cites').link(papers[1], papers[0]);
+graph.createEdge('cites').link(papers[2], papers[0]);
+graph.createEdge('cites').link(papers[3], papers[0]);
+
+// Paper 1 is cited by papers 2 and 4
+graph.createEdge('cites').link(papers[2], papers[1]);
+graph.createEdge('cites').link(papers[4], papers[1]);
+
+// Find the most influential papers using PageRank
+const influentialPapers = graph.closest(papers[0], {
+	algorithm: 'pagerank',
+	direction: 0,
+	minDepth: 0,
+	maxDepth: 3
+});
+
+// Parameters for PageRank can be customized
+const customPageRank = new PageRank(graph, {
+	dampingFactor: 0.85, // Probability of following links (default: 0.85)
+	maxIterations: 100, // Maximum iterations for convergence (default: 100)
+	tolerance: 1e-6 // Convergence threshold (default: 1e-6)
+});
+
+// Get top 5 nodes by PageRank score
+const topNodes = customPageRank.getTopNodes(5);
 ```
 
 ### Custom File Storage

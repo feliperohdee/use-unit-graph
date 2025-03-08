@@ -62,7 +62,7 @@ class PageRank {
 
 			// Calculate total PageRank in sink nodes (nodes with no outgoing edges)
 			let sinkPR = 0.0;
-			
+
 			nodes.forEach((node: Node) => {
 				if (this.getOutgoingCount(node) === 0) {
 					sinkPR += this.scores.get(node._uniqid_) || 0;
@@ -143,15 +143,15 @@ class PageRank {
 	}
 
 	/**
-	 * Gets relevant nodes from a source node based on PageRank scores and connectivity.
-	 * This method is designed to be used with graph.closest() for finding important related nodes.
+	 * Gets nodes relevant to a source node based on PageRank scores.
 	 *
-	 * @param sourceNode - The source node to find relevant nodes from
+	 * @param sourceNode - The source node
 	 * @param options - Options for finding relevant nodes
 	 * @param options.minDepth - Minimum distance (hops) from source node (default: 1)
 	 * @param options.maxDepth - Maximum distance (hops) from source node (default: 2)
 	 * @param options.limit - Maximum number of nodes to return (default: 10)
-	 * @param options.minScore - Minimum PageRank score threshold (default: 0)
+	 * @param options.minScore - Minimum PageRank score threshold (default: 0, auto-tuned when 0)
+	 * @param options.direction - Direction of traversal: 0 for both directions, 1 for outgoing, -1 for incoming (default: 0)
 	 * @returns Array of relevant nodes sorted by PageRank score
 	 */
 	getRelevantNodes(
@@ -161,12 +161,14 @@ class PageRank {
 			maxDepth?: number;
 			minDepth?: number;
 			minScore?: number;
+			direction?: number;
 		} = {}
 	): Node[] {
 		const minDepth = options.minDepth ?? 1;
 		const maxDepth = options.maxDepth ?? 2;
 		const limit = options.limit ?? 10;
 		const minScore = options.minScore ?? 0;
+		const direction = options.direction ?? 0;
 
 		// Ensure scores are computed
 		if (this.scores.size === 0) {
@@ -174,7 +176,7 @@ class PageRank {
 		}
 
 		// Get nodes within distance range from sourceNode
-		const nodesWithDistances = this.getNodesWithDistances(sourceNode, maxDepth);
+		const nodesWithDistances = this.getNodesWithDistances(sourceNode, maxDepth, direction);
 
 		// Filter by min/max depth and exclude the source node
 		const relevantNodes = nodesWithDistances
@@ -183,11 +185,38 @@ class PageRank {
 			})
 			.map(({ node }) => node);
 
+		// Auto-tune minScore if it's set to 0
+		let effectiveMinScore = minScore;
+		if (minScore === 0 && relevantNodes.length > 0) {
+			// Calculate scores for all relevant nodes
+			const scores = relevantNodes.map(node => {
+				return this.scores.get(node._uniqid_) || 0;
+			});
+
+			if (scores.length > 0) {
+				// Calculate mean and standard deviation
+				const sum = scores.reduce((a, b) => a + b, 0);
+				const mean = sum / scores.length;
+
+				// If we have more nodes than the limit, use a dynamic threshold
+				if (relevantNodes.length > limit) {
+					// Sort scores in descending order
+					const sortedScores = [...scores].sort((a, b) => b - a);
+					// Use a percentile-based approach - take the score at position 'limit' as threshold
+					// This ensures we get at least 'limit' nodes
+					effectiveMinScore = sortedScores[Math.min(limit, sortedScores.length) - 1];
+				} else {
+					// For small result sets, use a percentage of the mean as threshold
+					effectiveMinScore = mean * 0.1; // 10% of mean score as threshold
+				}
+			}
+		}
+
 		// Sort by PageRank score and filter by minimum score
 		return relevantNodes
 			.filter(node => {
 				const score = this.scores.get(node._uniqid_) || 0;
-				return score >= minScore;
+				return score >= effectiveMinScore;
 			})
 			.sort((a, b) => {
 				const scoreA = this.scores.get(a._uniqid_) || 0;
@@ -202,9 +231,10 @@ class PageRank {
 	 *
 	 * @param sourceNode - The source node
 	 * @param maxDepth - Maximum distance (hops) from source node
+	 * @param direction - Direction of traversal: 0 for both directions, 1 for outgoing, -1 for incoming (default: 0)
 	 * @returns Array of objects containing nodes and their distances
 	 */
-	private getNodesWithDistances(sourceNode: Node, maxDepth: number): Array<{ node: Node; distance: number }> {
+	private getNodesWithDistances(sourceNode: Node, maxDepth: number, direction: number = 0): Array<{ node: Node; distance: number }> {
 		const visited = new Set<string>([sourceNode._uniqid_]);
 		const result: Array<{ node: Node; distance: number }> = [{ node: sourceNode, distance: 0 }];
 		let currentLevel: Node[] = [sourceNode];
@@ -216,8 +246,8 @@ class PageRank {
 			const nextLevel: Node[] = [];
 
 			for (const node of currentLevel) {
-				// Get both incoming and outgoing connections
-				const connectedNodes = this.getConnectedNodes(node);
+				// Get connected nodes based on direction
+				const connectedNodes = this.getDirectionalConnectedNodes(node, direction);
 
 				for (const connectedNode of connectedNodes) {
 					if (!visited.has(connectedNode._uniqid_)) {
@@ -232,6 +262,48 @@ class PageRank {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Gets nodes connected to a node based on the specified direction.
+	 *
+	 * @param node - The node to get connections for
+	 * @param direction - Direction of traversal: 0 for both directions, 1 for outgoing, -1 for incoming
+	 * @returns Array of connected nodes
+	 */
+	private getDirectionalConnectedNodes(node: Node, direction: number): Node[] {
+		if (direction === 0) {
+			// Both directions (incoming and outgoing)
+			return this.getConnectedNodes(node);
+		} else if (direction > 0) {
+			// Outgoing only
+			const outgoingNodes: Node[] = [];
+			const nodeIds = new Set<string>();
+
+			node.outputEdges.forEach((edge: Edge) => {
+				const targetNode = edge.outputNode;
+				if (targetNode && !nodeIds.has(targetNode._uniqid_)) {
+					nodeIds.add(targetNode._uniqid_);
+					outgoingNodes.push(targetNode);
+				}
+			});
+
+			return outgoingNodes;
+		} else {
+			// Incoming only
+			const incomingNodes: Node[] = [];
+			const nodeIds = new Set<string>();
+
+			node.inputEdges.forEach((edge: Edge) => {
+				const sourceNode = edge.inputNode;
+				if (sourceNode && !nodeIds.has(sourceNode._uniqid_)) {
+					nodeIds.add(sourceNode._uniqid_);
+					incomingNodes.push(sourceNode);
+				}
+			});
+
+			return incomingNodes;
+		}
 	}
 
 	/**

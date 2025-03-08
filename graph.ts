@@ -79,15 +79,18 @@ class Graph {
 			return hybridSearch.search(node, opts.compare, opts.count, opts.direction, opts.minDepth, opts.maxDepth) as Path[];
 		} else if (opts.algorithm === 'pagerank') {
 			const pagerank = new PageRank(this);
-			
-			return pagerank.getRelevantNodes(node, {
-				limit: opts.count,
-				maxDepth: opts.maxDepth,
-				minDepth: opts.minDepth,
-				minScore: 0
-			}).map(node => {
-				return new Path([node]);
-			});
+
+			return pagerank
+				.getRelevantNodes(node, {
+					direction: opts.direction,
+					limit: opts.count,
+					maxDepth: opts.maxDepth,
+					minDepth: opts.minDepth,
+					minScore: 0
+				})
+				.map(node => {
+					return new Path([node]);
+				});
 		}
 
 		return this.search(node, opts.compare, opts.count, opts.direction, opts.minDepth, opts.maxDepth);

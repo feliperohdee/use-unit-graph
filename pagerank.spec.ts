@@ -25,7 +25,7 @@ describe('/pagerank', () => {
 				maxIterations: 50,
 				tolerance: 1e-5
 			});
-			
+
 			expect(pageRank).toBeDefined();
 		});
 	});
@@ -401,6 +401,113 @@ describe('/pagerank', () => {
 
 			expect(relevantNodes.length).toBe(1);
 			expect(relevantNodes[0]).toBe(nodeA);
+		});
+
+		it('should respect the direction parameter when finding relevant nodes', () => {
+			// Create a simple graph with clear directional relationships
+			const graph = new Graph();
+			const sourceNode = graph.createNode('source');
+			const outNode1 = graph.createNode('out1');
+			const outNode2 = graph.createNode('out2');
+			const inNode1 = graph.createNode('in1');
+			const inNode2 = graph.createNode('in2');
+
+			// Create outgoing edges from source
+			const outEdge1 = graph.createEdge('connects');
+			outEdge1.link(sourceNode, outNode1);
+
+			const outEdge2 = graph.createEdge('connects');
+			outEdge2.link(sourceNode, outNode2);
+
+			// Create incoming edges to source
+			const inEdge1 = graph.createEdge('connects');
+			inEdge1.link(inNode1, sourceNode);
+
+			const inEdge2 = graph.createEdge('connects');
+			inEdge2.link(inNode2, sourceNode);
+
+			const pageRank = new PageRank(graph);
+
+			// Test outgoing direction (1)
+			const outgoingNodes = pageRank.getRelevantNodes(sourceNode, { direction: 1 });
+			expect(outgoingNodes.length).toBe(2);
+			expect(outgoingNodes.some(node => node._uniqid_ === outNode1._uniqid_)).toBe(true);
+			expect(outgoingNodes.some(node => node._uniqid_ === outNode2._uniqid_)).toBe(true);
+			expect(outgoingNodes.some(node => node._uniqid_ === inNode1._uniqid_)).toBe(false);
+			expect(outgoingNodes.some(node => node._uniqid_ === inNode2._uniqid_)).toBe(false);
+
+			// Test incoming direction (-1)
+			const incomingNodes = pageRank.getRelevantNodes(sourceNode, { direction: -1 });
+			expect(incomingNodes.length).toBe(2);
+			expect(incomingNodes.some(node => node._uniqid_ === inNode1._uniqid_)).toBe(true);
+			expect(incomingNodes.some(node => node._uniqid_ === inNode2._uniqid_)).toBe(true);
+			expect(incomingNodes.some(node => node._uniqid_ === outNode1._uniqid_)).toBe(false);
+			expect(incomingNodes.some(node => node._uniqid_ === outNode2._uniqid_)).toBe(false);
+
+			// Test both directions (0)
+			const allNodes = pageRank.getRelevantNodes(sourceNode, { direction: 0 });
+			expect(allNodes.length).toBe(4);
+		});
+
+		it('should auto-tune minScore when set to 0', () => {
+			// Create a graph with nodes having varying PageRank scores
+			const graph = new Graph();
+			const sourceNode = graph.createNode('source');
+
+			// Create 20 nodes with connections to simulate different PageRank scores
+			const nodes: Node[] = [];
+			for (let i = 0; i < 20; i++) {
+				const node = graph.createNode(`node${i}`);
+				nodes.push(node);
+
+				// Connect nodes to source with varying patterns to create different scores
+				const edge = graph.createEdge('connects');
+				if (i % 2 === 0) {
+					// Even nodes connect from source (outgoing)
+					edge.link(sourceNode, node);
+				} else {
+					// Odd nodes connect to source (incoming)
+					edge.link(node, sourceNode);
+				}
+
+				// Create additional connections between nodes to vary scores
+				if (i > 0) {
+					const prevNode = nodes[i - 1];
+					const connEdge = graph.createEdge('connects');
+					connEdge.link(prevNode, node);
+				}
+			}
+
+			const pageRank = new PageRank(graph);
+			pageRank.compute(); // Compute scores
+
+			// Test with auto-tuning (minScore = 0)
+			const autoTunedNodes = pageRank.getRelevantNodes(sourceNode, {
+				minScore: 0,
+				limit: 5
+			});
+
+			// Should return exactly 5 nodes due to auto-tuning
+			expect(autoTunedNodes.length).toBe(5);
+
+			// Get scores of returned nodes
+			const scores = autoTunedNodes.map(node => pageRank.getScore(node));
+
+			// Verify scores are in descending order
+			for (let i = 1; i < scores.length; i++) {
+				expect(scores[i - 1]).toBeGreaterThanOrEqual(scores[i]);
+			}
+
+			// Test with a small set of nodes
+			const smallSetNodes = pageRank.getRelevantNodes(sourceNode, {
+				minScore: 0,
+				maxDepth: 1,
+				limit: 20
+			});
+
+			// Should return some nodes but filter out very low scores
+			expect(smallSetNodes.length).toBeGreaterThan(0);
+			expect(smallSetNodes.length).toBeLessThanOrEqual(20);
 		});
 	});
 });
