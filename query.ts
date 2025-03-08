@@ -1,40 +1,39 @@
 import Unit from './unit';
 
 type ComparatorFunction = (a: any, b: any) => boolean;
-
 type Comparators = {
 	[key: string]: ComparatorFunction;
 };
 
 const comparators: Comparators = {
-	is: function (a, b) {
+	is: (a, b) => {
 		return a === b;
 	},
-	not: function (a, b) {
+	not: (a, b) => {
 		return a !== b;
 	},
-	gt: function (a, b) {
+	gt: (a, b) => {
 		return a > b;
 	},
-	lt: function (a, b) {
+	lt: (a, b) => {
 		return a < b;
 	},
-	gte: function (a, b) {
+	gte: (a, b) => {
 		return a >= b;
 	},
-	lte: function (a, b) {
+	lte: (a, b) => {
 		return a <= b;
 	},
-	ilike: function (a, b) {
+	ilike: (a, b) => {
 		return a.toLowerCase().indexOf(b.toLowerCase()) > -1;
 	},
-	like: function (a, b) {
+	like: (a, b) => {
 		return a.indexOf(b) > -1;
 	},
-	in: function (a, b) {
+	in: (a, b) => {
 		return b.indexOf(a) > -1;
 	},
-	not_in: function (a, b) {
+	not_in: (a, b) => {
 		return b.indexOf(a) === -1;
 	}
 };
@@ -46,7 +45,7 @@ class Query {
 		this._units = units.slice();
 	}
 
-	__filter(filterArray: Record<string, any>[], exclude: boolean): Query {
+	_filter(filterArray: Record<string, any>[], exclude: boolean): Query {
 		exclude = !!exclude;
 
 		for (let i = 0, len = filterArray.length; i < len; i++) {
@@ -92,11 +91,9 @@ class Query {
 		let filterLength;
 		const len = data.length;
 
+		const tmp = Array(len);
 		let excludeCurrent;
 		let n = 0;
-		const tmp = Array(len);
-
-		let flen = 0;
 		let d;
 
 		try {
@@ -135,12 +132,12 @@ class Query {
 
 	filter(...args: Record<string, any>[]): Query {
 		const filterArgs = args[0] instanceof Array ? args[0] : args;
-		return this.__filter(filterArgs, false);
+		return this._filter(filterArgs, false);
 	}
 
 	exclude(...args: Record<string, any>[]): Query {
 		const filterArgs = args[0] instanceof Array ? args[0] : args;
-		return this.__filter(filterArgs, true);
+		return this._filter(filterArgs, true);
 	}
 
 	first(): Unit | undefined {

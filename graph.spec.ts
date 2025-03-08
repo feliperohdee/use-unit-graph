@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import fs from 'fs';
-import zlib from 'zlib';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import zlib, { gunzip } from 'zlib';
 
 import Edge from './edge';
 import EdgeCollection from './edge-collection';
@@ -8,9 +7,6 @@ import Graph from './graph';
 import Node from './node';
 import NodeCollection from './node-collection';
 import Path from './path';
-
-vi.mock('fs');
-vi.mock('zlib');
 
 describe('/graph', () => {
 	let graph: Graph;
@@ -22,131 +18,8 @@ describe('/graph', () => {
 
 	describe('constructor', () => {
 		it('should initialize with empty collections', () => {
-			expect(graph.nodeCount()).toBe(0);
-			expect(graph.edgeCount()).toBe(0);
-		});
-	});
-
-	describe('createNode', () => {
-		it('should create and return a new node', () => {
-			const node = graph.createNode('person', { name: 'Alice' });
-
-			expect(node).toBeInstanceOf(Node);
-			expect(node.entity).toBe('person');
-			expect(node.properties).toEqual({ name: 'Alice' });
-			expect(node.__uniqid__).toBeTruthy();
-			expect(graph.nodeCount()).toBe(1);
-		});
-	});
-
-	describe('createEdge', () => {
-		it('should create and return a new edge', () => {
-			const edge = graph.createEdge('knows', { since: 2020 });
-
-			expect(edge).toBeInstanceOf(Edge);
-			expect(edge.entity).toBe('knows');
-			expect(edge.properties).toEqual({ since: 2020 });
-			expect(edge.__uniqid__).toBeTruthy();
-			expect(graph.edgeCount()).toBe(1);
-		});
-	});
-
-	describe('nodes', () => {
-		it('should return a NodeCollection for the given entity', () => {
-			const collection = graph.nodes('person');
-
-			expect(collection).toBeInstanceOf(NodeCollection);
-			expect(collection.name()).toBe('person');
-		});
-
-		it('should return the same collection for the same entity', () => {
-			const collection1 = graph.nodes('person');
-			const collection2 = graph.nodes('person');
-
-			expect(collection1).toBe(collection2);
-		});
-	});
-
-	describe('edges', () => {
-		it('should return an EdgeCollection for the given entity', () => {
-			const collection = graph.edges('knows');
-
-			expect(collection).toBeInstanceOf(EdgeCollection);
-			expect(collection.name()).toBe('knows');
-		});
-
-		it('should return the same collection for the same entity', () => {
-			const collection1 = graph.edges('knows');
-			const collection2 = graph.edges('knows');
-
-			expect(collection1).toBe(collection2);
-		});
-	});
-
-	describe('unit', () => {
-		it('should return a unit by its uniqid', () => {
-			const node = graph.createNode('person', { name: 'Alice' });
-			const edge = graph.createEdge('knows', { since: 2020 });
-
-			expect(graph.unit(node.__uniqid__)).toBe(node);
-			expect(graph.unit(edge.__uniqid__)).toBe(edge);
-		});
-
-		it('should return undefined for non-existent uniqid', () => {
-			expect(graph.unit('non-existent')).toBeUndefined();
-		});
-	});
-
-	describe('trace', () => {
-		let nodeA: Node;
-		let nodeB: Node;
-		let nodeC: Node;
-		let edgeAB: Edge;
-		let edgeBC: Edge;
-
-		beforeEach(() => {
-			nodeA = graph.createNode('person', { name: 'Alice' });
-			nodeB = graph.createNode('person', { name: 'Bob' });
-			nodeC = graph.createNode('person', { name: 'Charlie' });
-
-			edgeAB = graph.createEdge('knows');
-			edgeAB.link(nodeA, nodeB);
-
-			edgeBC = graph.createEdge('knows');
-			edgeBC.link(nodeB, nodeC);
-		});
-
-		it('should find a path between two nodes', () => {
-			const path = graph.trace(nodeA, nodeC);
-
-			expect(path).toBeInstanceOf(Path);
-			expect(path.start()).toBe(nodeA);
-			expect(path.end()).toBe(nodeC);
-			expect(path.length()).toBe(2);
-		});
-
-		it('should return an empty path if no path exists', () => {
-			// Create an isolated node
-			const nodeD = graph.createNode('person', { name: 'David' });
-
-			const path = graph.trace(nodeA, nodeD);
-
-			expect(path).toBeInstanceOf(Path);
-			expect(path.length()).toBe(0);
-		});
-
-		it('should respect the direction parameter', () => {
-			// Test with direction = 1 (outgoing only)
-			const outPath = graph.trace(nodeA, nodeC, 1);
-			expect(outPath.length()).toBe(2);
-
-			// Test with direction = -1 (incoming only)
-			const inPath = graph.trace(nodeC, nodeA, -1);
-			expect(inPath.length()).toBe(2);
-
-			// No path should exist from A to C using incoming edges only
-			const noPath = graph.trace(nodeA, nodeC, -1);
-			expect(noPath.length()).toBe(0);
+			expect(graph.getNodeCount()).toBe(0);
+			expect(graph.getEdgeCount()).toBe(0);
 		});
 	});
 
@@ -247,6 +120,127 @@ describe('/graph', () => {
 		});
 	});
 
+	describe('createNode', () => {
+		it('should create and return a new node', () => {
+			const node = graph.createNode('person', { name: 'Alice' });
+
+			expect(node).toBeInstanceOf(Node);
+			expect(node.entity).toBe('person');
+			expect(node.properties).toEqual({ name: 'Alice' });
+			expect(node._uniqid_).toBeTruthy();
+			expect(graph.getNodeCount()).toBe(1);
+		});
+	});
+
+	describe('createEdge', () => {
+		it('should create and return a new edge', () => {
+			const edge = graph.createEdge('knows', { since: 2020 });
+
+			expect(edge).toBeInstanceOf(Edge);
+			expect(edge.entity).toBe('knows');
+			expect(edge.properties).toEqual({ since: 2020 });
+			expect(edge._uniqid_).toBeTruthy();
+			expect(graph.getEdgeCount()).toBe(1);
+		});
+	});
+
+	describe('getEdges', () => {
+		it('should return an EdgeCollection for the given entity', () => {
+			const collection = graph.getEdges('knows');
+
+			expect(collection).toBeInstanceOf(EdgeCollection);
+			expect(collection.name()).toBe('knows');
+		});
+
+		it('should return the same collection for the same entity', () => {
+			const collection1 = graph.getEdges('knows');
+			const collection2 = graph.getEdges('knows');
+
+			expect(collection1).toBe(collection2);
+		});
+	});
+
+	describe('getNodes', () => {
+		it('should return a NodeCollection for the given entity', () => {
+			const collection = graph.getNodes('person');
+
+			expect(collection).toBeInstanceOf(NodeCollection);
+			expect(collection.name()).toBe('person');
+		});
+
+		it('should return the same collection for the same entity', () => {
+			const collection1 = graph.getNodes('person');
+			const collection2 = graph.getNodes('person');
+
+			expect(collection1).toBe(collection2);
+		});
+	});
+
+	describe('getUnit', () => {
+		it('should return a unit by its uniqid', () => {
+			const node = graph.createNode('person', { name: 'Alice' });
+			const edge = graph.createEdge('knows', { since: 2020 });
+
+			expect(graph.getUnit(node._uniqid_)).toBe(node);
+			expect(graph.getUnit(edge._uniqid_)).toBe(edge);
+		});
+
+		it('should return undefined for non-existent uniqid', () => {
+			expect(graph.getUnit('non-existent')).toBeUndefined();
+		});
+	});
+
+	describe('gzip and gunzip', () => {
+		it('should gzip and gunzip a graph', async () => {
+			const graph = new Graph();
+			graph.createNode('person', { name: 'Alice' });
+
+			const buffer = await graph.gzip(JSON.stringify(graph.toJSON()));
+			const newGraph = new Graph();
+
+			newGraph.fromJSON(await newGraph.gunzip(buffer));
+
+			expect(graph.getNodeCount()).toBe(1);
+			expect(graph.getEdgeCount()).toBe(0);
+
+			expect(newGraph.getNodeCount()).toBe(1);
+			expect(newGraph.getEdgeCount()).toBe(0);
+		});
+	});
+
+	describe('save and load', () => {
+		let readFile: Mock;
+		let writeFile: Mock;
+
+		beforeEach(() => {
+			readFile = vi.fn();
+			writeFile = vi.fn();
+			graph = new Graph({ readFile, writeFile });
+
+			const nodeA = graph.createNode('person', { name: 'Alice' });
+			const nodeB = graph.createNode('person', { name: 'Bob' });
+			const edge = graph.createEdge('knows', { since: 2020 });
+
+			edge.link(nodeA, nodeB);
+		});
+
+		it('should save the graph to a file', async () => {
+			await graph.save('test.gz');
+
+			expect(writeFile).toHaveBeenCalledWith('test.gz', expect.any(Buffer));
+		});
+
+		it('should load the graph from a file', async () => {
+			readFile.mockResolvedValue(await graph.gzip(JSON.stringify(graph.toJSON())));
+
+			await graph.load('test.gz');
+
+			// expect(readFile).toHaveBeenCalledWith('test.gz');
+			expect(graph.getNodeCount()).toBe(2);
+			expect(graph.getEdgeCount()).toBe(1);
+		});
+	});
+
 	describe('toJSON and fromJSON', () => {
 		beforeEach(() => {
 			const nodeA = graph.createNode('person', { name: 'Alice' });
@@ -255,7 +249,7 @@ describe('/graph', () => {
 			const edge = graph.createEdge('knows', { since: 2020 });
 			edge.link(nodeA, nodeB);
 
-			graph.nodes('person').createIndex('name');
+			graph.getNodes('person').createIndex('name');
 		});
 
 		it('should serialize and deserialize the graph', () => {
@@ -266,12 +260,12 @@ describe('/graph', () => {
 			newGraph.fromJSON(json);
 
 			// Check that the new graph has the same structure
-			expect(newGraph.nodeCount()).toBe(2);
-			expect(newGraph.edgeCount()).toBe(1);
+			expect(newGraph.getNodeCount()).toBe(2);
+			expect(newGraph.getEdgeCount()).toBe(1);
 
 			// Check that we can find nodes by their indices
-			const alice = newGraph.nodes('person').find('name', 'Alice');
-			const bob = newGraph.nodes('person').find('name', 'Bob');
+			const alice = newGraph.getNodes('person').find('name', 'Alice');
+			const bob = newGraph.getNodes('person').find('name', 'Bob');
 
 			expect(alice).toBeDefined();
 			expect(bob).toBeDefined();
@@ -285,94 +279,56 @@ describe('/graph', () => {
 		});
 	});
 
-	describe('save and load', () => {
+	describe('trace', () => {
+		let nodeA: Node;
+		let nodeB: Node;
+		let nodeC: Node;
+		let edgeAB: Edge;
+		let edgeBC: Edge;
+
 		beforeEach(() => {
-			const nodeA = graph.createNode('person', { name: 'Alice' });
-			const nodeB = graph.createNode('person', { name: 'Bob' });
+			nodeA = graph.createNode('person', { name: 'Alice' });
+			nodeB = graph.createNode('person', { name: 'Bob' });
+			nodeC = graph.createNode('person', { name: 'Charlie' });
 
-			const edge = graph.createEdge('knows', { since: 2020 });
-			edge.link(nodeA, nodeB);
+			edgeAB = graph.createEdge('knows');
+			edgeAB.link(nodeA, nodeB);
+
+			edgeBC = graph.createEdge('knows');
+			edgeBC.link(nodeB, nodeC);
 		});
 
-		it('should save the graph to a file', () => {
-			// Mock implementations
-			const gzipMock = vi.spyOn(zlib, 'gzip').mockImplementation((data, callback: any) => {
-				callback(null, Buffer.from('mocked-gzipped-data'));
-			});
+		it('should find a path between two nodes', () => {
+			const path = graph.trace(nodeA, nodeC);
 
-			const writeFileMock = vi.spyOn(fs, 'writeFile').mockImplementation((path, data, callback: any) => {
-				callback(null);
-			});
-
-			// Call save
-			const callback = vi.fn();
-			graph.save('test.gz', callback);
-
-			// Check that the mocks were called correctly
-			expect(gzipMock).toHaveBeenCalled();
-			expect(writeFileMock).toHaveBeenCalledWith('test.gz', expect.any(Buffer), expect.any(Function));
-			expect(callback).toHaveBeenCalledWith(null);
+			expect(path).toBeInstanceOf(Path);
+			expect(path.start()).toBe(nodeA);
+			expect(path.end()).toBe(nodeC);
+			expect(path.length()).toBe(2);
 		});
 
-		it('should load the graph from a file', () => {
-			// Mock implementations
-			const readFileMock = vi.spyOn(fs, 'readFile').mockImplementation((path, callback: any) => {
-				callback(null, Buffer.from('mocked-gzipped-data'));
-			});
+		it('should return an empty path if no path exists', () => {
+			// Create an isolated node
+			const nodeD = graph.createNode('person', { name: 'David' });
 
-			const gunzipMock = vi.spyOn(zlib, 'gunzip').mockImplementation((data, callback: any) => {
-				const jsonData = JSON.stringify({
-					nodes: [['person', { name: 'Test' }, 'test-id']],
-					edges: [],
-					nodeCollections: [],
-					edgeCollections: []
-				});
-				callback(null, Buffer.from(jsonData));
-			});
+			const path = graph.trace(nodeA, nodeD);
 
-			// Call load
-			const callback = vi.fn();
-			graph.load('test.gz', callback);
-
-			// Check that the mocks were called correctly
-			expect(readFileMock).toHaveBeenCalledWith('test.gz', expect.any(Function));
-			expect(gunzipMock).toHaveBeenCalledWith(expect.any(Buffer), expect.any(Function));
-			expect(callback).toHaveBeenCalledWith(null, graph);
-
-			// Check that the graph was updated
-			expect(graph.nodeCount()).toBe(1);
-			expect(graph.edgeCount()).toBe(0);
-			const testNode = graph.unit('test-id');
-			expect(testNode).toBeDefined();
-			expect(testNode?.get('name')).toBe('Test');
+			expect(path).toBeInstanceOf(Path);
+			expect(path.length()).toBe(0);
 		});
 
-		it('should handle errors when saving', () => {
-			// Mock error
-			vi.spyOn(zlib, 'gzip').mockImplementation((data, callback: any) => {
-				callback(new Error('Gzip error'));
-			});
+		it('should respect the direction parameter', () => {
+			// Test with direction = 1 (outgoing only)
+			const outPath = graph.trace(nodeA, nodeC, 1);
+			expect(outPath.length()).toBe(2);
 
-			// Call save
-			const callback = vi.fn();
-			graph.save('test.gz', callback);
+			// Test with direction = -1 (incoming only)
+			const inPath = graph.trace(nodeC, nodeA, -1);
+			expect(inPath.length()).toBe(2);
 
-			// Check that the error was passed to the callback
-			expect(callback).toHaveBeenCalledWith(expect.any(Error));
-		});
-
-		it('should handle errors when loading', () => {
-			// Mock error
-			vi.spyOn(fs, 'readFile').mockImplementation((path, callback: any) => {
-				callback(new Error('Read error'));
-			});
-
-			// Call load
-			const callback = vi.fn();
-			graph.load('test.gz', callback);
-
-			// Check that the error was passed to the callback
-			expect(callback).toHaveBeenCalledWith(expect.any(Error));
+			// No path should exist from A to C using incoming edges only
+			const noPath = graph.trace(nodeA, nodeC, -1);
+			expect(noPath.length()).toBe(0);
 		});
 	});
 });

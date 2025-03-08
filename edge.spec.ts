@@ -18,7 +18,7 @@ describe('/edge', () => {
 		it('should create an Edge with the given entity and properties', () => {
 			expect(edge.entity).toBe('testEdge');
 			expect(edge.properties).toEqual({ weight: 5 });
-			expect(edge.__uniqid__).toBe('');
+			expect(edge._uniqid_).toBe('');
 		});
 
 		it('should initialize with null nodes and default values', () => {
@@ -139,9 +139,9 @@ describe('/edge', () => {
 	describe('toJSON', () => {
 		it('should return an array with edge data including node references', () => {
 			edge.link(inputNode, outputNode);
-			inputNode.__uniqid__ = 'input-id';
-			outputNode.__uniqid__ = 'output-id';
-			edge.__uniqid__ = 'edge-id';
+			inputNode._uniqid_ = 'input-id';
+			outputNode._uniqid_ = 'output-id';
+			edge._uniqid_ = 'edge-id';
 
 			const json = edge.toJSON();
 

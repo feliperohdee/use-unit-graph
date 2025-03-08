@@ -4,19 +4,19 @@ type Properties = {
 
 class Unit {
 	entity: string;
-	__uniqid__: string;
+	_uniqid_: string;
 	properties: Properties = Object.create(null);
 
 	constructor(entity: string, properties?: Properties, uniqid?: string) {
 		this.entity = entity + '';
-		this.__uniqid__ = uniqid || '';
+		this._uniqid_ = uniqid || '';
 		this.load(properties || {});
 	}
 
 	load(properties: Properties): this {
 		const p: Properties = Object.create(null);
 
-		Object.keys(properties).forEach(function (v) {
+		Object.keys(properties).forEach(v => {
 			p[v] = properties[v];
 		});
 
@@ -50,7 +50,7 @@ class Unit {
 	}
 
 	toJSON(): any[] {
-		return [this.entity, this.properties, this.__uniqid__];
+		return [this.entity, this.properties, this._uniqid_];
 	}
 }
 

@@ -98,7 +98,7 @@ class Edge extends Unit {
 
 	toJSON(): any[] {
 		const baseJson = super.toJSON();
-		return baseJson.concat([this.inputNode?.__uniqid__ || '', this.outputNode?.__uniqid__ || '', this.duplex ? 1 : 0, this.distance]);
+		return baseJson.concat([this.inputNode?._uniqid_ || '', this.outputNode?._uniqid_ || '', this.duplex ? 1 : 0, this.distance]);
 	}
 }
 

@@ -24,10 +24,10 @@ class Path {
 
 	distance(): number {
 		return this._raw
-			.filter(function (v, i) {
+			.filter((v, i) => {
 				return !!(i & 1);
 			})
-			.reduce(function (p, c) {
+			.reduce((p, c) => {
 				return p + (c as Edge).distance;
 			}, 0);
 	}
@@ -36,7 +36,7 @@ class Path {
 		const arr = this._raw;
 
 		return arr
-			.map(function (v, i, arr) {
+			.map((v, i, arr) => {
 				const str = v.toString();
 
 				if (i & 1) {

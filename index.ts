@@ -8,17 +8,7 @@ import Path from './path';
 import Query from './query';
 import Unit from './unit';
 
-export {
-	Collection,
-	Edge,
-	EdgeCollection,
-	Graph,
-	Node,
-	NodeCollection,
-	Path,
-	Query,
-	Unit
-};
+export { Collection, Edge, EdgeCollection, Graph, Node, NodeCollection, Path, Query, Unit };
 
 export default {
 	Collection,

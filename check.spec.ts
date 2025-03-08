@@ -18,7 +18,7 @@ describe('graph tracing and path finding', () => {
 		graph = new Graph();
 
 		// Create nodes
-		graph.nodes('node').createIndex('name');
+		graph.getNodes('node').createIndex('name');
 
 		nodeA = graph.createNode('node', { name: 'A' });
 		nodeB = graph.createNode('node', { name: 'B' });
@@ -83,16 +83,16 @@ describe('graph tracing and path finding', () => {
 			const newGraph = new Graph().fromJSON(json);
 
 			// Check node and edge counts
-			expect(newGraph.nodeCount()).toBe(8);
-			expect(newGraph.edgeCount()).toBe(7);
+			expect(newGraph.getNodeCount()).toBe(8);
+			expect(newGraph.getEdgeCount()).toBe(7);
 
 			// Check that we can find nodes by name
-			const newNodeA = newGraph.nodes('node').find('name', 'A');
+			const newNodeA = newGraph.getNodes('node').find('name', 'A');
 			expect(newNodeA).toBeDefined();
 
 			// Check that paths still work
 			if (newNodeA) {
-				const newNodeE = newGraph.nodes('node').find('name', 'E');
+				const newNodeE = newGraph.getNodes('node').find('name', 'E');
 				if (newNodeE) {
 					const path = newGraph.trace(newNodeA as Node, newNodeE as Node);
 					expect(path.distance()).toBe(5);

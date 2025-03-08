@@ -14,7 +14,7 @@ describe('/node', () => {
 		it('should create a Node with the given entity and properties', () => {
 			expect(node.entity).toBe('testNode');
 			expect(node.properties).toEqual({ id: 1 });
-			expect(node.__uniqid__).toBe('');
+			expect(node._uniqid_).toBe('');
 		});
 
 		it('should initialize empty edge arrays', () => {

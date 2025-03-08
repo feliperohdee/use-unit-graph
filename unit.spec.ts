@@ -9,7 +9,7 @@ describe('/unit', () => {
 
 			expect(unit.entity).toBe('testEntity');
 			expect(unit.properties).toEqual({ id: 1, name: 'test' });
-			expect(unit.__uniqid__).toBe('');
+			expect(unit._uniqid_).toBe('');
 		});
 
 		it('should create a Unit with a custom uniqid', () => {
@@ -17,7 +17,7 @@ describe('/unit', () => {
 
 			expect(unit.entity).toBe('testEntity');
 			expect(unit.properties).toEqual({ id: 1 });
-			expect(unit.__uniqid__).toBe('custom-id');
+			expect(unit._uniqid_).toBe('custom-id');
 		});
 	});
 
