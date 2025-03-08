@@ -60,6 +60,15 @@ class PageRank {
 			const newScores = new Map<string, number>();
 			let maxDifference = 0;
 
+			// Calculate total PageRank in sink nodes (nodes with no outgoing edges)
+			let sinkPR = 0.0;
+			
+			nodes.forEach((node: Node) => {
+				if (this.getOutgoingCount(node) === 0) {
+					sinkPR += this.scores.get(node._uniqid_) || 0;
+				}
+			});
+
 			// Calculate new scores
 			nodes.forEach((node: Node) => {
 				const incomingNodes = this.getIncomingNodes(node);
@@ -73,9 +82,11 @@ class PageRank {
 					}
 				});
 
-				// PageRank formula: (1-d)/N + d * sum(PR(i)/C(i))
+				// PageRank formula: (1-d)/N + d * (sum(PR(i)/C(i)) + sinkPR/N)
 				const randomJumpProbability = (1 - this.dampingFactor) / nodes.length;
-				const newScore = randomJumpProbability + this.dampingFactor * sum;
+				// Add sink nodes contribution distributed evenly
+				const sinkContribution = (this.dampingFactor * sinkPR) / nodes.length;
+				const newScore = randomJumpProbability + sinkContribution + this.dampingFactor * sum;
 
 				newScores.set(node._uniqid_, newScore);
 
@@ -92,6 +103,9 @@ class PageRank {
 			converged = maxDifference < this.tolerance;
 			iteration++;
 		}
+
+		// Normalize scores to sum to 1.0
+		this.normalizeScores();
 
 		return this.scores;
 	}
@@ -295,6 +309,25 @@ class PageRank {
 	 */
 	private getOutgoingCount(node: Node): number {
 		return node.outputEdges.length;
+	}
+
+	/**
+	 * Normalizes PageRank scores so they sum to 1.0
+	 */
+	private normalizeScores(): void {
+		let sum = 0;
+
+		// Calculate sum of all scores
+		this.scores.forEach(score => {
+			sum += score;
+		});
+
+		// Normalize if sum is not zero
+		if (sum > 0) {
+			this.scores.forEach((score, key) => {
+				this.scores.set(key, score / sum);
+			});
+		}
 	}
 }
 

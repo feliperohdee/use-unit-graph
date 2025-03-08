@@ -25,6 +25,7 @@ describe('/pagerank', () => {
 				maxIterations: 50,
 				tolerance: 1e-5
 			});
+			
 			expect(pageRank).toBeDefined();
 		});
 	});
