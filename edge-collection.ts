@@ -1,3 +1,5 @@
-import { Collection } from './collection';
+import Collection from './collection';
 
-export class EdgeCollection extends Collection {}
+class EdgeCollection extends Collection {}
+
+export default EdgeCollection;

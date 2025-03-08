@@ -1,9 +1,7 @@
-import { Unit } from './unit';
+import Node from './node';
+import Unit from './unit';
 
-// Forward declaration to avoid circular dependency
-import type { Node } from './node';
-
-export class Edge extends Unit {
+class Edge extends Unit {
 	inputNode: Node | null;
 	outputNode: Node | null;
 	duplex: boolean;
@@ -103,3 +101,5 @@ export class Edge extends Unit {
 		return baseJson.concat([this.inputNode?.__uniqid__ || '', this.outputNode?.__uniqid__ || '', this.duplex ? 1 : 0, this.distance]);
 	}
 }
+
+export default Edge;

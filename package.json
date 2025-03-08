@@ -19,9 +19,8 @@
 	"scripts": {
 		"build": "tsc",
 		"lint": "prettier --write .",
-		"test": "vitest run",
-		"test:coverage": "vitest run --coverage",
-		"test:watch": "vitest"
+		"test": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"types": "dist/index.d.ts",
 	"version": "1.0.0"

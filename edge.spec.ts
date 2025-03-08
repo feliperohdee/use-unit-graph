@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Edge } from './edge';
-import { Node } from './node';
 
-describe('Edge', () => {
+import Edge from './edge';
+import Node from './node';
+
+describe('/edge', () => {
 	let edge: Edge;
 	let inputNode: Node;
 	let outputNode: Node;

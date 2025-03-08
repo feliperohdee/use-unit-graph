@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Query } from './query';
-import { Unit } from './unit';
+
+import Query from './query';
+import Unit from './unit';
 
 describe('/query', () => {
 	let units: Unit[];

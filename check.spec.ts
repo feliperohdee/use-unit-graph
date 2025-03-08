@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Graph } from './graph';
-import { Node } from './node';
+
+import Graph from './graph';
+import Node from './node';
 
 describe('graph tracing and path finding', () => {
 	let graph: Graph;

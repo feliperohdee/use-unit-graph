@@ -1,7 +1,7 @@
-import { Query } from './query';
-import { Unit } from './unit';
+import Query from './query';
+import Unit from './unit';
 
-export class Collection {
+class Collection {
 	protected _name: string;
 	protected _units: Unit[];
 	protected _indices: { [key: string]: { [key: string]: Unit } };
@@ -38,6 +38,7 @@ export class Collection {
 		for (let i = 0, len = fieldList.length; i < len; i++) {
 			const index = fieldList[i];
 			const lookup = (indices[index] = Object.create(null));
+
 			for (let u = 0, ulen = units.length; u < ulen; u++) {
 				const unit = units[u];
 				const id = unit.get(index);
@@ -111,3 +112,5 @@ export class Collection {
 		return new Query(this._units);
 	}
 }
+
+export default Collection;

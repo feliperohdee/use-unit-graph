@@ -1,3 +1,5 @@
-import { Collection } from './collection';
+import Collection from './collection';
 
-export class NodeCollection extends Collection {}
+class NodeCollection extends Collection {}
+
+export default NodeCollection;

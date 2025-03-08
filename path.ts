@@ -1,9 +1,9 @@
-import { Node } from './node';
-import { Edge } from './edge';
+import Edge from './edge';
+import Node from './node';
 
 type PathElement = Node | Edge;
 
-export class Path {
+class Path {
 	private _raw: PathElement[];
 
 	constructor(array: PathElement[]) {
@@ -63,3 +63,5 @@ export class Path {
 		return this.prettify();
 	}
 }
+
+export default Path;

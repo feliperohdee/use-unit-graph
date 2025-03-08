@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Collection } from './collection';
-import { Unit } from './unit';
+
+import Collection from './collection';
+import Unit from './unit';
 
 describe('/collection', () => {
 	let collection: Collection;

@@ -1,27 +1,27 @@
-import * as fs from 'fs';
-import * as zlib from 'zlib';
+import fs from 'fs';
+import zlib from 'zlib';
 
-import { Node } from './node';
-import { Edge } from './edge';
-import { Unit } from './unit';
-import { NodeCollection } from './node-collection';
-import { EdgeCollection } from './edge-collection';
-import { Path } from './path';
+import Edge from './edge';
+import EdgeCollection from './edge-collection';
+import Node from './node';
+import NodeCollection from './node-collection';
+import Path from './path';
+import Unit from './unit';
 
 type UnitLookup = { [key: string]: Unit };
 type NodeCollections = { [key: string]: NodeCollection };
 type EdgeCollections = { [key: string]: EdgeCollection };
 type TracedPath = { [key: string]: (Node | Edge)[] };
 
-interface SearchOptions {
+type SearchOptions = {
 	compare?: (node: Node) => boolean;
 	count?: number;
 	direction?: number;
 	minDepth?: number;
 	maxDepth?: number;
-}
+};
 
-export class Graph {
+class Graph {
 	private __uniqval__: number;
 	private _lookup: UnitLookup = Object.create(null);
 	private _nodes: Node[] = [];
@@ -315,3 +315,5 @@ export class Graph {
 		});
 	}
 }
+
+export default Graph;

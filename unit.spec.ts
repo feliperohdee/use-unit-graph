@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Unit } from './unit';
+
+import Unit from './unit';
 
 describe('/unit', () => {
 	describe('constructor', () => {

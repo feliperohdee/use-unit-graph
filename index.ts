@@ -1,18 +1,33 @@
-// Main graph class
-export { Graph } from './graph';
+import Collection from './collection';
+import Edge from './edge';
+import EdgeCollection from './edge-collection';
+import Graph from './graph';
+import Node from './node';
+import NodeCollection from './node-collection';
+import Path from './path';
+import Query from './query';
+import Unit from './unit';
 
-// Path class
-export { Path } from './path';
+export {
+	Collection,
+	Edge,
+	EdgeCollection,
+	Graph,
+	Node,
+	NodeCollection,
+	Path,
+	Query,
+	Unit
+};
 
-// Query class
-export { Query } from './query';
-
-// Unit classes
-export { Unit } from './unit';
-export { Node } from './node';
-export { Edge } from './edge';
-
-// Collection classes
-export { Collection } from './collection';
-export { NodeCollection } from './node-collection';
-export { EdgeCollection } from './edge-collection';
+export default {
+	Collection,
+	Edge,
+	EdgeCollection,
+	Graph,
+	Node,
+	NodeCollection,
+	Path,
+	Query,
+	Unit
+};

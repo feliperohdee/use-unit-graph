@@ -1,9 +1,7 @@
-import { Unit } from './unit';
+import Unit from './unit';
+import type Edge from './edge';
 
-// Forward declaration to avoid circular dependency
-import type { Edge } from './edge';
-
-export class Node extends Unit {
+class Node extends Unit {
 	edges: Edge[];
 	inputEdges: Edge[];
 	outputEdges: Edge[];
@@ -29,3 +27,5 @@ export class Node extends Unit {
 		return super.toJSON();
 	}
 }
+
+export default Node;

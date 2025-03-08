@@ -1,8 +1,8 @@
-interface Properties {
+type Properties = {
 	[key: string]: any;
-}
+};
 
-export class Unit {
+class Unit {
 	entity: string;
 	__uniqid__: string;
 	properties: Properties = Object.create(null);
@@ -53,3 +53,5 @@ export class Unit {
 		return [this.entity, this.properties, this.__uniqid__];
 	}
 }
+
+export default Unit;

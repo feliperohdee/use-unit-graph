@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { Graph } from './graph';
-import { Node } from './node';
-import { Edge } from './edge';
-import { NodeCollection } from './node-collection';
-import { EdgeCollection } from './edge-collection';
-import { Path } from './path';
-import * as fs from 'fs';
-import * as zlib from 'zlib';
+import fs from 'fs';
+import zlib from 'zlib';
 
-// Mock fs and zlib modules
+import Edge from './edge';
+import EdgeCollection from './edge-collection';
+import Graph from './graph';
+import Node from './node';
+import NodeCollection from './node-collection';
+import Path from './path';
+
 vi.mock('fs');
 vi.mock('zlib');
 

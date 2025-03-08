@@ -1,10 +1,10 @@
-import { Unit } from './unit';
+import Unit from './unit';
 
 type ComparatorFunction = (a: any, b: any) => boolean;
 
-interface Comparators {
+type Comparators = {
 	[key: string]: ComparatorFunction;
-}
+};
 
 const comparators: Comparators = {
 	is: function (a, b) {
@@ -39,7 +39,7 @@ const comparators: Comparators = {
 	}
 };
 
-export class Query {
+class Query {
 	private _units: Unit[];
 
 	constructor(units: Unit[]) {
@@ -156,3 +156,5 @@ export class Query {
 		return this._units.slice();
 	}
 }
+
+export default Query;
