@@ -2,6 +2,7 @@ import { Graph } from './index';
 import Node from './node';
 import Path from './path';
 import RecommendationSystem, { InteractionType } from './recommendation';
+import PageRank from './pagerank';
 
 // Create a simple example of a recommendation system for an e-commerce platform
 function createEcommerceRecommendationExample() {
@@ -101,8 +102,8 @@ function createEcommerceRecommendationExample() {
 // Example usage
 function runRecommendationExamples() {
 	const { recommendationSystem, users, products, graph } = createEcommerceRecommendationExample();
-	const { alice, bob } = users;
-	const { laptop, phone, headphones } = products;
+	const { alice, bob, charlie } = users;
+	const { laptop, phone, headphones, tablet, book } = products;
 
 	console.log('=== Recommendation Examples ===');
 
@@ -254,6 +255,66 @@ function runRecommendationExamples() {
 		if (endNode instanceof Node) {
 			console.log(`- ${endNode.get('name')}`);
 		}
+	});
+
+	// Example 8: PageRank-based recommendations for Alice
+	console.log('\n8. PageRank-based recommendations for Alice:');
+	const pageRankRecommendations = recommendationSystem.getPageRankRecommendations(alice, {
+		count: 5,
+		maxDepth: 3
+	});
+	console.log(`Found ${pageRankRecommendations.length} recommendations`);
+	pageRankRecommendations.forEach(path => {
+		const endNode = path.end();
+		if (endNode instanceof Node) {
+			console.log(`- ${endNode.get('name')}`);
+		}
+	});
+
+	// Example 9: Hybrid PageRank recommendations for Bob
+	console.log('\n9. Hybrid PageRank recommendations for Bob:');
+	const hybridPageRankRecommendations = recommendationSystem.getHybridPageRankRecommendations(bob, {
+		count: 5,
+		maxDepth: 3
+	});
+	console.log(`Found ${hybridPageRankRecommendations.length} recommendations`);
+	hybridPageRankRecommendations.forEach(path => {
+		const endNode = path.end();
+		if (endNode instanceof Node) {
+			console.log(`- ${endNode.get('name')}`);
+		}
+	});
+
+	// Example 10: PageRank-based recommendations filtered by interaction type
+	console.log('\n10. PageRank-based recommendations for Charlie filtered by BUY interactions:');
+	const filteredPageRankRecommendations = recommendationSystem.getPageRankRecommendations(charlie, {
+		interactionTypes: [InteractionType.BUY],
+		count: 5,
+		maxDepth: 3
+	});
+	console.log(`Found ${filteredPageRankRecommendations.length} recommendations`);
+	filteredPageRankRecommendations.forEach(path => {
+		const endNode = path.end();
+		if (endNode instanceof Node) {
+			console.log(`- ${endNode.get('name')}`);
+		}
+	});
+
+	// Example 11: Compare PageRank scores of products
+	console.log('\n11. PageRank scores of products:');
+	const pageRank = new PageRank(graph);
+	pageRank.compute();
+
+	const productScores = [
+		{ name: laptop.get('name'), score: pageRank.getScore(laptop) },
+		{ name: phone.get('name'), score: pageRank.getScore(phone) },
+		{ name: headphones.get('name'), score: pageRank.getScore(headphones) },
+		{ name: tablet.get('name'), score: pageRank.getScore(tablet) },
+		{ name: book.get('name'), score: pageRank.getScore(book) }
+	].sort((a, b) => b.score - a.score);
+
+	productScores.forEach(product => {
+		console.log(`- ${product.name}: ${product.score.toFixed(4)}`);
 	});
 }
 

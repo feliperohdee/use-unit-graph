@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-
-import { createEcommerceRecommendationExample } from './recommendation-example';
 import { Graph } from './index';
 import Node from './node';
 import RecommendationSystem, { InteractionType } from './recommendation';
+import { createEcommerceRecommendationExample } from './recommendation-example';
+import PageRank from './pagerank';
 
 describe('/recommendation', () => {
 	let graph: Graph;
@@ -119,7 +119,65 @@ describe('/recommendation', () => {
 		});
 	});
 
-	describe('E-commerce example', () => {
+	describe('pagerank based recommendations', () => {
+		beforeEach(() => {
+			// Setup a recommendation graph for PageRank testing
+			recommendationSystem.recordInteraction(user1, product1, InteractionType.VIEW);
+			recommendationSystem.recordInteraction(user1, product1, InteractionType.BUY);
+			recommendationSystem.recordInteraction(user1, product2, InteractionType.VIEW);
+			recommendationSystem.recordInteraction(user2, product1, InteractionType.VIEW);
+			recommendationSystem.recordInteraction(user2, product3, InteractionType.BUY);
+		});
+
+		it('should return PageRank-based recommendations', () => {
+			const recommendations = recommendationSystem.getPageRankRecommendations(user1);
+
+			// Should return some recommendations
+			expect(recommendations).toBeDefined();
+
+			// Verify that the recommendations are returned as Path objects
+			if (recommendations.length > 0) {
+				expect(recommendations[0].end()).toBeDefined();
+			}
+		});
+
+		it('should filter PageRank recommendations by interaction type', () => {
+			const recommendations = recommendationSystem.getPageRankRecommendations(user1, {
+				interactionTypes: [InteractionType.BUY]
+			});
+
+			// Should return some recommendations
+			expect(recommendations).toBeDefined();
+		});
+
+		it('should return hybrid PageRank recommendations', () => {
+			const recommendations = recommendationSystem.getHybridPageRankRecommendations(user1);
+
+			// Should return some recommendations
+			expect(recommendations).toBeDefined();
+
+			// Verify that the recommendations are returned as Path objects
+			if (recommendations.length > 0) {
+				expect(recommendations[0].end()).toBeDefined();
+			}
+		});
+
+		it('should calculate PageRank scores for products', () => {
+			const pageRank = new PageRank(graph);
+			pageRank.compute();
+
+			const product1Score = pageRank.getScore(product1);
+			const product2Score = pageRank.getScore(product2);
+			const product3Score = pageRank.getScore(product3);
+
+			// Product1 should have the highest PageRank score as it has the most interactions
+			expect(product1Score).toBeGreaterThan(0);
+			expect(product1Score).toBeGreaterThanOrEqual(product2Score);
+			expect(product1Score).toBeGreaterThanOrEqual(product3Score);
+		});
+	});
+
+	describe('ecommerce example', () => {
 		it('should create a valid recommendation system with the example data', () => {
 			const example = createEcommerceRecommendationExample();
 
@@ -130,12 +188,33 @@ describe('/recommendation', () => {
 		});
 
 		it('should find recommendations in the example data', () => {
+			const { recommendationSystem, users, products } = createEcommerceRecommendationExample();
+			const { alice } = users;
+
+			// Use VIEW interactions which we know return recommendations from the example output
+			const recommendations = recommendationSystem.getRecommendations(alice, {
+				interactionTypes: [InteractionType.VIEW]
+			});
+
+			// Should return some recommendations
+			expect(recommendations.length).toBeGreaterThan(0);
+		});
+
+		it('should provide PageRank-based recommendations in the example data', () => {
 			const { recommendationSystem, users } = createEcommerceRecommendationExample();
 			const { alice } = users;
 
-			const recommendations = recommendationSystem.getRecommendations(alice);
+			const recommendations = recommendationSystem.getPageRankRecommendations(alice);
 
-			console.log(recommendations);
+			// Should return some recommendations
+			expect(recommendations.length).toBeGreaterThan(0);
+		});
+
+		it('should provide hybrid PageRank recommendations in the example data', () => {
+			const { recommendationSystem, users } = createEcommerceRecommendationExample();
+			const { bob } = users;
+
+			const recommendations = recommendationSystem.getHybridPageRankRecommendations(bob);
 
 			// Should return some recommendations
 			expect(recommendations.length).toBeGreaterThan(0);

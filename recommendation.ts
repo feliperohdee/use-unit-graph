@@ -2,6 +2,7 @@ import { Graph } from './index';
 import Node from './node';
 import Edge from './edge';
 import Path from './path';
+import PageRank from './pagerank';
 
 // Define interaction types and their default distances
 export enum InteractionType {
@@ -328,6 +329,143 @@ export class RecommendationSystem {
 			.map(item => new Path([item.node]));
 
 		return result;
+	}
+
+	/**
+	 * Get recommendations using PageRank algorithm
+	 * This method identifies influential products in the network and recommends them
+	 * based on their PageRank score and relevance to the user
+	 */
+	getPageRankRecommendations(user: Node, options: RecommendationOptions = {}): Path[] {
+		const { interactionTypes = [], count = 10, direction = 1, minDepth = 1, maxDepth = 3, nodeFilter } = options;
+
+		// Create a PageRank instance for the graph
+		const pageRank = new PageRank(this.graph);
+
+		// Compute PageRank scores for all nodes
+		pageRank.compute();
+
+		// Define a compare function that filters by node type and user's interactions
+		const compareFunction = (node: Node): boolean => {
+			// Skip the user node itself
+			if (node._uniqid_ === user._uniqid_) {
+				return false;
+			}
+
+			// Apply node filter if provided
+			if (nodeFilter && !nodeFilter(node)) {
+				return false;
+			}
+
+			// If specific interaction types are specified, check if the node
+			// is connected to the user through those interaction types
+			if (interactionTypes.length > 0) {
+				// Check if the user has directly interacted with this node
+				const hasDirectInteraction = user.outputEdges.some(
+					edge => interactionTypes.includes(edge.entity as InteractionType) && edge.outputNode?._uniqid_ === node._uniqid_
+				);
+
+				// If there's a direct interaction, skip this node (already known to user)
+				if (hasDirectInteraction) {
+					return false;
+				}
+
+				// For indirect recommendations, we'll rely on PageRank's relevance calculation
+			}
+
+			return true;
+		};
+
+		// Get relevant nodes using PageRank
+		const relevantNodes = pageRank.getRelevantNodes(user, {
+			compare: compareFunction,
+			limit: count,
+			maxDepth,
+			minDepth,
+			direction,
+			minScore: 0.01 // Minimum PageRank score to consider
+		});
+
+		// Convert to Path objects
+		return relevantNodes.map(node => new Path([node]));
+	}
+
+	/**
+	 * Get hybrid recommendations that combine collaborative filtering with PageRank
+	 * This method balances popularity (PageRank) with personalization (collaborative filtering)
+	 */
+	getHybridPageRankRecommendations(user: Node, options: RecommendationOptions = {}): Path[] {
+		const { interactionTypes = [], count = 10, direction = 1, minDepth = 1, maxDepth = 3, nodeFilter } = options;
+
+		// Get collaborative filtering recommendations
+		const collaborativeRecs = this.getRecommendations(user, {
+			interactionTypes,
+			count: count * 2, // Get more recommendations to blend
+			direction,
+			minDepth,
+			maxDepth,
+			nodeFilter
+		});
+
+		// Get PageRank recommendations
+		const pageRankRecs = this.getPageRankRecommendations(user, {
+			interactionTypes,
+			count: count * 2, // Get more recommendations to blend
+			direction,
+			minDepth,
+			maxDepth,
+			nodeFilter
+		});
+
+		// Create a PageRank instance for score lookup
+		const pageRank = new PageRank(this.graph);
+		pageRank.compute();
+
+		// Combine and score recommendations
+		const combinedRecommendations = new Map<string, { node: Node; score: number }>();
+
+		// Process collaborative filtering recommendations
+		collaborativeRecs.forEach((path, index) => {
+			const node = path.end();
+			if (!(node instanceof Node)) return;
+
+			const nodeId = node._uniqid_;
+			const collaborativeScore = 1 - index / collaborativeRecs.length; // Normalize to 0-1
+			const pageRankScore = pageRank.getScore(node);
+
+			// Weighted score: 70% collaborative, 30% PageRank
+			const hybridScore = 0.7 * collaborativeScore + 0.3 * pageRankScore;
+
+			combinedRecommendations.set(nodeId, { node, score: hybridScore });
+		});
+
+		// Process PageRank recommendations
+		pageRankRecs.forEach((path, index) => {
+			const node = path.end();
+			if (!(node instanceof Node)) return;
+
+			const nodeId = node._uniqid_;
+			const pageRankScore = pageRank.getScore(node);
+
+			if (combinedRecommendations.has(nodeId)) {
+				// Node already exists from collaborative filtering, boost its score
+				const existing = combinedRecommendations.get(nodeId)!;
+				const boostedScore = existing.score * 1.2; // Boost by 20%
+				combinedRecommendations.set(nodeId, { node, score: boostedScore });
+			} else {
+				// New node from PageRank
+				const normalizedRankScore = 1 - index / pageRankRecs.length; // Normalize to 0-1
+				// Weighted score: 30% normalized rank, 70% actual PageRank
+				const hybridScore = 0.3 * normalizedRankScore + 0.7 * pageRankScore;
+				combinedRecommendations.set(nodeId, { node, score: hybridScore });
+			}
+		});
+
+		// Sort by score and convert to paths
+		return Array.from(combinedRecommendations.values())
+			.sort((a, b) => b.score - a.score)
+			.slice(0, count)
+			.map(item => new Path([item.node]));
 	}
 
 	/**

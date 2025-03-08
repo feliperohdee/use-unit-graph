@@ -319,6 +319,37 @@ const recommendations = recommendationSystem.getRecommendations(user, {
 });
 ```
 
+#### PageRank-Based Recommendations
+
+The recommendation system also supports PageRank-based recommendations, which can identify influential products in the network:
+
+```typescript
+// Get recommendations based on PageRank algorithm
+const pageRankRecommendations = recommendationSystem.getPageRankRecommendations(user, {
+	count: 5,
+	maxDepth: 3
+});
+
+// Get hybrid recommendations that combine collaborative filtering with PageRank
+const hybridRecommendations = recommendationSystem.getHybridPageRankRecommendations(user, {
+	interactionTypes: [InteractionType.BUY],
+	count: 5,
+	maxDepth: 3
+});
+```
+
+PageRank-based recommendations are particularly useful for:
+
+- Finding popular products that are central to the interaction network
+- Discovering influential items that connect different user communities
+- Balancing popularity with personalization in the hybrid approach
+
+The hybrid approach combines the strengths of both collaborative filtering and PageRank:
+
+- Collaborative filtering provides personalized recommendations based on similar users
+- PageRank identifies globally important products in the network
+- The hybrid method weights both factors to provide balanced recommendations
+
 ### Hybrid Search Algorithm
 
 The hybrid search algorithm combines aspects of both breadth-first and priority-based searching to efficiently find paths in complex graphs. It's particularly useful for graphs with:
