@@ -7,8 +7,22 @@ import NodeCollection from './node-collection';
 import Path from './path';
 import Query from './query';
 import Unit from './unit';
+import RecommendationSystem, { InteractionType, RecommendationOptions } from './recommendation';
 
-export { Collection, Edge, EdgeCollection, Graph, Node, NodeCollection, Path, Query, Unit };
+export {
+	Collection,
+	Edge,
+	EdgeCollection,
+	Graph,
+	Node,
+	NodeCollection,
+	Path,
+	Query,
+	Unit,
+	RecommendationSystem,
+	InteractionType,
+	RecommendationOptions
+};
 
 export default {
 	Collection,
@@ -19,5 +33,7 @@ export default {
 	NodeCollection,
 	Path,
 	Query,
-	Unit
+	Unit,
+	RecommendationSystem,
+	InteractionType
 };

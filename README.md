@@ -240,6 +240,85 @@ const paths = graph.closest(startNode, {
 });
 ```
 
+### Recommendation System
+
+The library includes a recommendation system that can be used to build recommendation engines based on user interactions with items.
+
+```typescript
+import { Graph, RecommendationSystem, InteractionType } from 'use-unit-graph';
+
+// Create a new graph
+const graph = new Graph();
+
+// Create a recommendation system
+const recommendationSystem = new RecommendationSystem(graph);
+
+// Create users and products
+const alice = graph.createNode('user', { name: 'Alice' });
+const bob = graph.createNode('user', { name: 'Bob' });
+const laptop = graph.createNode('product', { name: 'Laptop' });
+const phone = graph.createNode('product', { name: 'Phone' });
+
+// Record interactions between users and products
+recommendationSystem.recordInteraction(alice, laptop, InteractionType.VIEW);
+recommendationSystem.recordInteraction(alice, laptop, InteractionType.BUY);
+recommendationSystem.recordInteraction(bob, laptop, InteractionType.VIEW);
+recommendationSystem.recordInteraction(bob, phone, InteractionType.BUY);
+
+// Get recommendations for Alice
+const recommendations = recommendationSystem.getRecommendations(alice);
+
+// Get recommendations for Alice based only on BUY interactions
+const buyRecommendations = recommendationSystem.getRecommendations(alice, {
+	interactionTypes: [InteractionType.BUY],
+	maxDepth: 3
+});
+
+// Find "Users who viewed this also bought" for laptop
+const viewedAlsoBought = recommendationSystem.getInteractionBasedRecommendations(laptop, InteractionType.VIEW, InteractionType.BUY);
+```
+
+#### Interaction Types
+
+The recommendation system supports different types of interactions, each with a default distance value (lower distance means stronger connection):
+
+- `BUY` (distance: 1) - Strongest connection
+- `LIKE` (distance: 2)
+- `COMMENT` (distance: 3)
+- `SHARE` (distance: 4)
+- `VIEW` (distance: 5) - Weakest connection
+
+You can customize these distances when recording interactions:
+
+```typescript
+recommendationSystem.recordInteraction(
+	user,
+	product,
+	InteractionType.VIEW,
+	{ distance: 3 } // Custom distance
+);
+```
+
+#### Filtering Recommendations
+
+You can filter recommendations by:
+
+1. Interaction types:
+
+```typescript
+const recommendations = recommendationSystem.getRecommendations(user, {
+	interactionTypes: [InteractionType.BUY, InteractionType.LIKE]
+});
+```
+
+2. Node properties:
+
+```typescript
+const recommendations = recommendationSystem.getRecommendations(user, {
+	nodeFilter: node => node.entity === 'product' && node.get('category') === 'electronics'
+});
+```
+
 ### Hybrid Search Algorithm
 
 The hybrid search algorithm combines aspects of both breadth-first and priority-based searching to efficiently find paths in complex graphs. It's particularly useful for graphs with:

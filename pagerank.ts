@@ -184,10 +184,7 @@ class PageRank {
 		// Filter by min/max depth and exclude the source node
 		const relevantNodes = nodesWithDistances
 			.filter(({ node, distance }) => {
-				return node._uniqid_ !== sourceNode._uniqid_ && 
-					distance >= minDepth && 
-					distance <= maxDepth && 
-					(!compare || compare(node));
+				return node._uniqid_ !== sourceNode._uniqid_ && distance >= minDepth && distance <= maxDepth && (!compare || compare(node));
 			})
 			.map(({ node }) => node);
 
