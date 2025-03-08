@@ -152,11 +152,13 @@ class PageRank {
 	 * @param options.limit - Maximum number of nodes to return (default: 10)
 	 * @param options.minScore - Minimum PageRank score threshold (default: 0, auto-tuned when 0)
 	 * @param options.direction - Direction of traversal: 0 for both directions, 1 for outgoing, -1 for incoming (default: 0)
+	 * @param options.compare - Optional function to filter nodes based on custom criteria (default: undefined)
 	 * @returns Array of relevant nodes sorted by PageRank score
 	 */
 	getRelevantNodes(
 		sourceNode: Node,
 		options: {
+			compare?: (node: Node) => boolean;
 			limit?: number;
 			maxDepth?: number;
 			minDepth?: number;
@@ -164,11 +166,12 @@ class PageRank {
 			direction?: number;
 		} = {}
 	): Node[] {
-		const minDepth = options.minDepth ?? 1;
-		const maxDepth = options.maxDepth ?? 2;
-		const limit = options.limit ?? 10;
-		const minScore = options.minScore ?? 0;
+		const compare = options.compare;
 		const direction = options.direction ?? 0;
+		const limit = options.limit ?? 10;
+		const maxDepth = options.maxDepth ?? 2;
+		const minDepth = options.minDepth ?? 1;
+		const minScore = options.minScore ?? 0;
 
 		// Ensure scores are computed
 		if (this.scores.size === 0) {
@@ -181,7 +184,10 @@ class PageRank {
 		// Filter by min/max depth and exclude the source node
 		const relevantNodes = nodesWithDistances
 			.filter(({ node, distance }) => {
-				return node._uniqid_ !== sourceNode._uniqid_ && distance >= minDepth && distance <= maxDepth;
+				return node._uniqid_ !== sourceNode._uniqid_ && 
+					distance >= minDepth && 
+					distance <= maxDepth && 
+					(!compare || compare(node));
 			})
 			.map(({ node }) => node);
 

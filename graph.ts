@@ -82,6 +82,7 @@ class Graph {
 
 			return pagerank
 				.getRelevantNodes(node, {
+					compare: opts.compare,
 					direction: opts.direction,
 					limit: opts.count,
 					maxDepth: opts.maxDepth,
