@@ -239,8 +239,6 @@ export class RecommendationSystem {
 		const {
 			count = 10,
 			direction = -1, // Default to incoming for "users who..."
-			minDepth = 1,
-			maxDepth = 3,
 			nodeFilter
 		} = options;
 

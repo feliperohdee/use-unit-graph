@@ -5,7 +5,7 @@ import RecommendationSystem, { InteractionType } from './recommendation';
 import PageRank from './pagerank';
 
 // Create a simple example of a recommendation system for an e-commerce platform
-function createEcommerceRecommendationExample() {
+const createEcommerceRecommendationExample = () => {
 	// Create a new graph
 	const graph = new Graph();
 
@@ -97,10 +97,10 @@ function createEcommerceRecommendationExample() {
 		users: { alice, bob, charlie, dave, eve },
 		products: { laptop, phone, headphones, book, shirt, tablet, watch, shoes }
 	};
-}
+};
 
 // Example usage
-function runRecommendationExamples() {
+const runRecommendationExamples = () => {
 	const { recommendationSystem, users, products, graph } = createEcommerceRecommendationExample();
 	const { alice, bob, charlie } = users;
 	const { laptop, phone, headphones, tablet, book } = products;
@@ -316,7 +316,7 @@ function runRecommendationExamples() {
 	productScores.forEach(product => {
 		console.log(`- ${product.name}: ${product.score.toFixed(4)}`);
 	});
-}
+};
 
 // Run the examples
 runRecommendationExamples();
